@@ -1,0 +1,64 @@
+version: "3.9"
+services:
+  mysql-service:
+    image: mysql:latest
+    ports:
+      - "3367:3306"
+    container_name: my-sql-container
+    networks:
+      - host
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+  mongo-service:
+    image: mongo:latest
+    container_name: mongo-container
+    networks:
+      - host
+    ports:
+      - "27018:27017"
+
+  harshit-dashboard:
+    build:
+      context: .
+      dockerfile: dashboard.df
+    container_name: dashboard-container
+    networks:
+      - host
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mongo-service
+    restart: always
+
+  harshit-login:
+    build:
+      context: .
+      dockerfile: login.df
+    container_name: login-container
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - host
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql-service
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.df
+    container_name: frontend
+    ports:
+    - "8091:80"
+
+
+networks:
+  host:
+    driver: bridge
